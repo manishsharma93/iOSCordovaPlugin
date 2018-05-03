@@ -1,4 +1,1 @@
-# testRepo
-
-# iOSCordovaPlugin
 # iOSCordovaPlugin
