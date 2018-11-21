@@ -21,7 +21,15 @@ pod 'Netcore-Smartech-iOS-SDK'
 pod install
 ```
 
-5. Open App.xcworkspace and build.
+5. Add Following capability inside your application
+```swift
+Push Notification
+Keychain
+Background Mode -> Remote Notification
+App Groups
+```
+
+6. Open App.xcworkspace and build.
 
 ## NetCore Manual Integration
 1. Download iOS SDK and Unzip the file. Open Framework folder - inside it you will
@@ -33,16 +41,18 @@ in Target > Embedded Binaries section
 Security
 CoreLocation
 SystemConfiguration
-JavaScriptCore
+JavaScriptCore 
 ```
 4. Add Following capability inside your application
 ```swift
 Push Notification
 Keychain
+Background Mode -> Remote Notification
+App Groups
 ```
 5. Create Bridge file in existing swift project if required and add Following code inside file.
-```swift
-import NetCorePush
+```objc
+#import <NetCorePush/NetCorePush.h>
 ```
 
 ## NetCore SDK Initialization
@@ -55,203 +65,237 @@ import NetCorePush
 2. Add NetCore Application AppID in support in Finish Launching Methods
 (AppDelegate file)
 ```swift
-let netCore_AppID = "your App Id which you get from Netcore smartech admin
-panel"
-```
-// Set up NetCore Application Id-------------------------------------
-```swift
-NetCoreSharedManager.sharedInstance().setUpApplicationId(netCore_AppID)
-```
+let appGroup = "<group.com.CompanyName.ProductName>"
+
+NetCoreSharedManager.sharedInstance().setUpAppGroup(appGroup)
+
+let netCore_AppID = "your App Id which you get from Netcore smartech admin panel"
+// Set up NetCore  Application Id
+
+NetCoreSharedManager.sharedInstance().handleApplicationLaunchEvent(launchOptions, forApplicationId: netCore_AppID)
+
 //set up push delegate
-```swift
 NetCorePushTaskManager.sharedInstance().delegate = self
 ```
-// set up your third party framework initialization process as per their document
-
-3. Add Push Notification support in Finish Launching Methods (AppDelegate
-file)
+3. Register Device With NetCore SDK (AppDelegate file)
 ```swift
-if #available(iOS 10, *) {
-UNUserNotificationCenter.current().delegate = self
-UNUserNotificationCenter.current().requestAuthorization(options:
-[.alert, .badge, .sound]) { (granted, error) in
-guard error == nil else {
-return
-}
-if granted {
-UIApplication.shared.registerForRemoteNotifications()
-}
-}
-UIApplication.shared.registerForRemoteNotifications()
-} else {
-let settings: UIUserNotificationSettings =
-UIUserNotificationSettings(types: [.alert, .badge, .sound],
-categories: nil)
-UIApplication.shared.registerUserNotificationSettings(settings)
-UIApplication.shared.registerForRemoteNotifications()
+func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+
+  //Identity must be “”(blank) or as per Primary key which defined on smartech Panel
+  NetCoreInstallation.sharedInstance().netCorePushRegisteration(Identity, withDeviceToken: deviceToken) { (status) in }
 }
 ```
+## For Normal Push Notifications
 
-4. Check Application Launching from Push/Local Notification support in
-Finish Launching Methods (AppDelegate file)
 ```swift
-if (launchOptions != nil){
-NetCorePushTaskManager.sharedInstance().handelApplicationLaunchEvent(launchOpt
-ions)
+//Handle Remote/Local Notification Delegate Events (AppDelegate file)
+func application ( _ application : UIApplication, didReceiveRemoteNotification userInfo : [ AnyHashable : Any ]) {
+  // perform notification received/click action as per third party SDK as per their document
+  NetCorePushTaskManager.sharedInstance().didReceiveRemoteNotification(userInfo)
+}
+
+func application (_ application : UIApplication , didReceive notification : UILocalNotification ){
+  NetCorePushTaskManager.sharedInstance().didReceiveLocalNotification(notification.userInfo)
 }
 ```
-
-5. Register Device With NetCore SDK (AppDelegate file)
 ```swift
-func application ( _ application : UIApplication,
-didRegisterForRemoteNotificationsWithDeviceToken deviceToken : Data) {
-// Register device token with third party SDK as per their document
-NetCoreSharedManager.sharedInstance().setDeviceToken(deviceToken)
-//strEmail = your application identity
-NetCoreSharedManager.sharedInstance().setUpIdentity(strEmail as!
-String!)
-// Register User Device with NetCore
-NetCoreInstallation.sharedInstance().netCorePushRegisteration(strEmail as!
-String!, block: { (code) in})
-}
-func application ( _ application : UIApplication,
-didFailToRegisterForRemoteNotificationsWithError error : Error ) {
-// manage notification token failure process as per third party SDK as per their
-document
-}
-```
-
-6. Handle Push/Local Notification Delegate Events (AppDelegate file)
-```swift
-func application ( _ application : UIApplication, didReceiveRemoteNotification
-userInfo : [ AnyHashable : Any ]) {
-// perform notification received/click action as per third party SDK as per their
-document
-NetCorePushTaskManager.sharedInstance().didReceiveRemoteNotification(userInfo)
-}
-func application (_ application : UIApplication , didReceive notification :
-UILocalNotification ){
-NetCorePushTaskManager.sharedInstance().didReceiveLocalNotification(notification.u
-serInfo)
-}
-extension AppDelegate: UNUserNotificationCenterDelegate {
 // called when application is open when user click on notification
-@objc (userNotificationCenter: didReceiveNotificationResponse :withCompletionHandler
-:)
+extension AppDelegate: UNUserNotificationCenterDelegate {
+
+@objc (userNotificationCenter: didReceiveNotificationResponse :withCompletionHandler:)
 @available ( iOS 10.0 , * )
 func userNotificationCenter ( _ center : UNUserNotificationCenter, didReceive
 response : UNNotificationResponse, withCompletionHandler completionHandler :
 @escaping () -> Void ) {
-// perform notification received/click action as per third party SDK as per their
-document
-NetCorePushTaskManager.sharedInstance().userNotificationdidReceive(response)
-}
+    // perform notification received/click action as per third party SDK as per their document
+    NetCorePushTaskManager.sharedInstance().userNotificationdidReceive(response)
+  }
 }
 ```
-7. Handle Deep Linking
+
+## To Handle URL Link
+
 ```swift
-func application(_ application: UIApplication,
-open url: URL,
-sourceApplication: String?,
-annotation: Any) -> Bool{
-if url.absoluteString.lowercased().contains ("your app deep link"){
-// handle deep link here
+func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
+  if url.absoluteString.lowercased().contains ("your app URL link") {
+    // handle URL link here
+  }
+  return true
 }
-return true
-}
+```
+
+## To Handle Deep Link
+
+```swift
+//For Handling deep link
 extension AppDelegate : NetCorePushTaskManagerDelegate {
-func handleNotificationOpenAction(_ userInfo: [AnyHashable : Any]!, deepLinkType
-strType: String!) {
-if strType .lowercased().contains ("your app deep link"){
-// handle deep link here
-}
+func handleNotificationOpenAction(_ userInfo: [AnyHashable : Any]!, deepLinkType strType: String!) {
+    if strType .lowercased().contains ("your app deep link"){
+    // handle deep link here
+    }
+  }
 }
 ```
-8. Login with NetCore
+## To Handle Interactive buttons
+
 ```swift
-// strEmail = pass your device identity
-NetCoreInstallation.sharedInstance().netCorePushLogin(strEmail) {
-(statusCode:Int) in }
+func application(_ application: UIApplication, handleActionWithIdentifier identifier:
+String?, forRemoteNotification userInfo: [AnyHashable : Any], withResponseInfo
+responseInfo: [AnyHashable : Any], completionHandler: @escaping () -> Void) {
+
+NetCorePushTaskManager.sharedInstance().handleAction(withIdentifier: identifier, forRemoteNotification: userInfo,     withResponseInfo: responseInfo)
+completionHandler()
+
+}
 ```
-9. Logout
+
+## For Login Activity
 ```swift
-// strEmail = pass your device identity
+// Identity must be “”(blank) or as per Primary key which defined on smartech Panel
+NetCoreInstallation.sharedInstance().netCorePushLogin(Identity) {(statusCode:Int) in }
+```
+
+## For Logout Activity
+```swift
 NetCoreInstallation.sharedInstance().netCorePushLogout { (statusCode:Int) in }
 ```
-10. Profile Push
+## For Profile Update
 ```swift
-// strEmail = pass your device identity
-let info = ["name":"Tester", "age":"23", "mobile":"9898948849"]
-NetCoreInstallation.sharedInstance().netCoreProfilePush(strEmail, payload: ino, block: nil)
-```
-11. Events Tracking:
-Following is the list of tracking events
-```swift
-tracking_PageBrowse = 1,
-tracking_AddToCart = 2,
-tracking_CheckOut = 3,
-tracking_CartExpiry = 4,
-tracking_RemoveFromCart = 5,
-tracking_FirstLaunch = 20,
-tracking_AppLaunch = 21
-```
-You can use this events following ways
+// Identity must be “”(blank) or as per Primary key which defined on smartech Panel
+let info = ["NAME":"Tester", "AGE":"23", "MOBILE":"9898948849"]
 
-12. Track normal event
-```swift
-// for sending application launch event
-NetCoreAppTracking.sharedInstance().sendEvent(Int(UInt32(tracking_AppLaunch.ra
-wValue)), block: nil)
+NetCoreInstallation.sharedInstance().netCoreProfilePush(Identity, payload: info, block: nil)
+//Attribute name must be in Capital such as NAME, AGE etc.
+
 ```
-13. Track event with custom payload
+## To Track Custom event
 ```swift
 //add To cart event with custom array of data
-NetCoreAppTracking.sharedInstance().sendEvent(withCustomPayload:
-Int(UInt32(tracking_PageBrowse.rawValue)), payload: arrayAddToCart , block: nil)#
+NetCoreAppTracking.sharedInstance().sendEvent(withCustomPayload:Int(UInt32(tracking_PageBrowse.rawValue)), payload: arrayAddToCart , block: nil)
+//Activity tracking code can be generated from Smartech panel
+
 ```
-14. To fetch delivered push notifications
+## To fetch delivered push notifications
 ```swift
-let array : Array = netCoreSharedManager.sharedInstance().getNotifications()
+let notificationArray : Array = NetCoreSharedManager.sharedInstance().getNotifications()
 ```
+
+## If user wants to opt out from being tracked
+Add below code
+```swift
+NetCoreSharedManager.sharedInstance().optOut(<boolean_flag>)
+```
+Note:  The method mentioned above accepts a compulsory boolean value (true/false).
+
+- If an end user wants to opt out, the flag should be passed as **true**. Once the user opts out, Netcore SDK will not be able to track that particular user further and no communications will be received by that user. </br>
+**e.g. NetCoreSharedManager.sharedInstance().optOut(true)**
+
+- If an end user wants to opt in, the flag should be passed as **false**. Once the user opts in, Netcore SDK will be able to track that particular user further and next communications will be received by that user.</br>
+**e.g NetCoreSharedManager.sharedInstance().optOut(false)**
+
+
+## For Rich Push Notifications 
+### Configuration Changes
+```swift
+1) Add “Notification Service Extension” to your app. File->New->Target- >Notification Service Extension.
+
+2) Click Next and when asked to “Activate”, Click Activate.
+
+3) Add “App Groups” to your apps Capabilities(Add one group with name "<group.com.CompanyName.ProductName>").
+
+4) Enable App groups in Service Extension too and select group with name "<group.com.CompanyName.ProductName>".
+
+5) If App group is not activated on the provisioning profile you are using, then 
+i.Enable App groups in your provisioning profile from your Apple Developer’s account and replace the profile with the new one. Or,
+ii.In your apps’s, Target->General-> Signing, Select “Automatically manage signing” and enable App groups by going to Target->Capabilities->App group. This will automatically add app groups capability to you provisioning profile.
+```
+***NOTE: For more clarity on this, please refer above <[SDK-Integration-Steps.pdf](https://github.com/NetcoreSolutions/Smartech-ios-sdk/blob/master/ObjectiveC-and-swift-Integration-Steps.pdf)>**
+
+### Implementation Changes
+
+Remove all the code written in “NotificationService” implementation class.
+
+1) Import NetCore Framework into Extension
+```swift
+import NetCorePush
+```
+2) Handle Notification Request
+```swift
+override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+let appGroup = "<group.com.CompanyName.ProductName>"
+NetCoreNotificationService.sharedInstance().setUpAppGroup(appGroup)
+
+NetCoreNotificationService.sharedInstance().didReceive(request) { (contentToDeliver:UNNotificationContent) in
+contentHandler(contentToDeliver) }
+}
+```
+3) Handle Notification Service Time Expire
+```swift
+override func serviceExtensionTimeWillExpire() { 
+NetCoreNotificationService.sharedInstance().serviceExtensionTimeWillExpire() 
+}
+
+```
+***NOTE: For more clarity on this, please refer above <[SDK-Integration-Steps.pdf](https://github.com/NetcoreSolutions/Smartech-ios-sdk/blob/master/ObjectiveC-and-swift-Integration-Steps.pdf)>**
+
+
+## For Carousel Push Notifications 
+### Configuration Changes
+```swift
+1) Add “Notification Content Extension” to your app. File->New->Target->Notification Content Extension.
+
+2) Click Next and when asked to “Activate”, Click Activate.
+
+3) Add “App Groups” to your apps Capabilities(Add one group with name "<group.com.CompanyName.ProductName>").
+
+4) Enable “App Groups” in Content Extension too and select group with name "<group.com.CompanyName.ProductName>".
+
+```
+***NOTE: For more clarity on this, please refer above <[SDK-Integration-Steps.pdf](https://github.com/NetcoreSolutions/Smartech-ios-sdk/blob/master/ObjectiveC-and-swift-Integration-Steps.pdf)>**
+
+### Implementation Changes
+```swift
+1) Replace “MainInterface.storyboard” of Content Extension with the one provided in "Rich Files".
+
+2) In “Info.plist” file of Content Extension, replace “UNNotificationExtensionCategory” value with “SmartechPushCategory”.
+
+3) In “Info.plist” file of Content Extension, add “UNNotificationExtensionDefaultContentHidden” Boolean value with “NO”.
+
+4) Replace “NotificationViewController” class files from the "Rich Files" into your project.
+```
+***NOTE: For more clarity on this, please refer above <[SDK-Integration-Steps.pdf](https://github.com/NetcoreSolutions/Smartech-ios-sdk/blob/master/ObjectiveC-and-swift-Integration-Steps.pdf)>**
 
 ### Deployment Over Apple Store
 Add Following runscript in your application target ,when you are deploying application
 over apple store,this run script use remove unused architecture in release mode
 ```swift
-echo "Target architectures: $ARCHS"
 APP_PATH="${TARGET_BUILD_DIR}/${WRAPPER_NAME}"
+
+# This script loops through the frameworks embedded in the application and
+# removes unused architectures.
 find "$APP_PATH" -name '*.framework' -type d | while read -r FRAMEWORK
 do
-FRAMEWORK_EXECUTABLE_NAME=$(defaults read "$FRAMEWORK/Info.plist"
-CFBundleExecutable)
-FRAMEWORK_EXECUTABLE_PATH="$FRAMEWORK/$FRAMEWORK_EXECUTABLE_NAM
-E"
+FRAMEWORK_EXECUTABLE_NAME=$(defaults read "$FRAMEWORK/Info.plist" CFBundleExecutable)
+FRAMEWORK_EXECUTABLE_PATH="$FRAMEWORK/$FRAMEWORK_EXECUTABLE_NAME"
 echo "Executable is $FRAMEWORK_EXECUTABLE_PATH"
-echo $(lipo -info $FRAMEWORK_EXECUTABLE_PATH)
-FRAMEWORK_TMP_PATH="$FRAMEWORK_EXECUTABLE_PATH-tmp"
-# remove simulator's archs if location is not simulator's directory
-case "${TARGET_BUILD_DIR}" in
-*"iphonesimulator")
-echo "No need to remove archs"
-;;
-*)
-if $(lipo $FRAMEWORK_EXECUTABLE_PATH -verify_arch "i386") ; then
-lipo -output $FRAMEWORK_TMP_PATH -remove "i386"
-$FRAMEWORK_EXECUTABLE_PATH
-echo "i386 architecture removed"
-rm $FRAMEWORK_EXECUTABLE_PATH
-mv $FRAMEWORK_TMP_PATH $FRAMEWORK_EXECUTABLE_PATH
-fi
-if $(lipo $FRAMEWORK_EXECUTABLE_PATH -verify_arch "x86_64") ; then
-lipo -output $FRAMEWORK_TMP_PATH -remove "x86_64"
-$FRAMEWORK_EXECUTABLE_PATH
-echo "x86_64 architecture removed"
-rm $FRAMEWORK_EXECUTABLE_PATH
-mv $FRAMEWORK_TMP_PATH $FRAMEWORK_EXECUTABLE_PATH
-fi
-;;
-esac
-echo "Completed for executable $FRAMEWORK_EXECUTABLE_PATH"
-echo $(lipo -info $FRAMEWORK_EXECUTABLE_PATH)
+
+EXTRACTED_ARCHS=()
+
+for ARCH in $ARCHS
+do
+echo "Extracting $ARCH from $FRAMEWORK_EXECUTABLE_NAME"
+lipo -extract "$ARCH" "$FRAMEWORK_EXECUTABLE_PATH" -o "$FRAMEWORK_EXECUTABLE_PATH-$ARCH"
+EXTRACTED_ARCHS+=("$FRAMEWORK_EXECUTABLE_PATH-$ARCH")
+done
+
+echo "Merging extracted architectures: ${ARCHS}"
+lipo -o "$FRAMEWORK_EXECUTABLE_PATH-merged" -create "${EXTRACTED_ARCHS[@]}"
+rm "${EXTRACTED_ARCHS[@]}"
+
+echo "Replacing original executable with thinned version"
+rm "$FRAMEWORK_EXECUTABLE_PATH"
+mv "$FRAMEWORK_EXECUTABLE_PATH-merged" "$FRAMEWORK_EXECUTABLE_PATH"
+
 done
 ```
+
