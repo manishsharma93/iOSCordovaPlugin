@@ -173,7 +173,7 @@ NetCoreAppTracking.sharedInstance().sendEvent(withCustomPayload:Int(UInt32(track
 
 //event name with custom payload dictionary of data
 NetCoreAppTracking.sharedInstance()?.trackEvent(withCustomPayload: Event_Name,payload: payloadDict, block:nil)
-for eg.
+eg.,
 let payloadDict = NSMutableDictionary()
 payloadDict.setValue("iPhonex", forKey: "name")
         
