@@ -106,9 +106,9 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 func userNotificationCenter ( _ center : UNUserNotificationCenter, didReceive
 response : UNNotificationResponse, withCompletionHandler completionHandler :
 @escaping () -> Void ) {
-// perform notification received/click action as per third party SDK as per their document
-NetCorePushTaskManager.sharedInstance().userNotificationdidReceive(response)
-}
+  // perform notification received/click action as per third party SDK as per their document
+  NetCorePushTaskManager.sharedInstance().userNotificationdidReceive(response)
+  }
 }
 ```
 
@@ -116,10 +116,10 @@ NetCorePushTaskManager.sharedInstance().userNotificationdidReceive(response)
 
 ```swift
 func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
-if url.absoluteString.lowercased().contains ("your app URL link") {
-// handle URL link here
-}
-return true
+  if url.absoluteString.lowercased().contains ("your app URL link") {
+    // handle URL link here
+  }
+  return true
 }
 ```
 
@@ -129,10 +129,10 @@ return true
 //For Handling deep link
 extension AppDelegate : NetCorePushTaskManagerDelegate {
 func handleNotificationOpenAction(_ userInfo: [AnyHashable : Any]!, deepLinkType strType: String!) {
-if strType .lowercased().contains ("your app deep link"){
-// handle deep link here
-}
-}
+  if strType .lowercased().contains ("your app deep link"){
+    // handle deep link here
+    }
+  }
 }
 ```
 ## To Handle Interactive buttons
