@@ -201,8 +201,8 @@ Note:  The method mentioned above accepts a compulsory boolean value (true/false
 
 ## To Set Identity
 ```swift
-// Identity must be “”(blank) or as per Primary key which defined on smartech Panel
 NetCoreSharedManager.sharedInstance()?.setUpIdentity(Identity)
+// Identity must be “”(blank) or as per Primary key which defined on smartech Panel
 ```
 
 ## To Clear Identity
