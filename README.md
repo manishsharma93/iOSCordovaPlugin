@@ -200,6 +200,12 @@ Note:  The method mentioned above accepts a compulsory boolean value (true/false
 - If an end user wants to opt in, the flag should be passed as **false**. Once the user opts in, Netcore SDK will be able to track that particular user further and next communications will be received by that user.</br>
 **e.g NetCoreSharedManager.sharedInstance().optOut(false)**
 
+## To Set Identity
+```swift
+// Identity must be “”(blank) or as per Primary key which defined on smartech Panel
+NetCoreSharedManager.sharedInstance()?.setUpIdentity(Identity)
+```
+
 ## To Clear Identity
 ```swift
 NetCoreSharedManager.sharedInstance()?.clearIdentity()
