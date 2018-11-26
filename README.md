@@ -69,7 +69,6 @@ let appGroup = "<group.com.CompanyName.ProductName>"
 NetCoreSharedManager.sharedInstance().setUpAppGroup(appGroup)
 
 let netCore_AppID = "your App Id which you get from Netcore smartech admin panel"
-// Set up NetCore  Application Id
 
 NetCoreSharedManager.sharedInstance().handleApplicationLaunchEvent(launchOptions, forApplicationId: netCore_AppID)
 
