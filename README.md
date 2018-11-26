@@ -173,9 +173,18 @@ NetCoreAppTracking.sharedInstance().sendEvent(withCustomPayload:Int(UInt32(track
 
 //event name with custom payload dictionary of data
 NetCoreAppTracking.sharedInstance()?.trackEvent(withCustomPayload: Event_Name,payload: payloadDict, block:nil)
+for eg.
+let payloadDict = NSMutableDictionary()
+payloadDict.setValue("iPhonex", forKey: "name")
+        
+let array = Array(arrayLiteral: "1","2","3");
+payloadDict.setValue(array, forKey: "Price")
+        
+let details = NSMutableDictionary()
+details.setValue(“iphone XS", forKey: "name");
+payloadDict.setValue(details, forKey: "details")
 
-//Activity tracking code can be generated from Smartech panel
-
+NetCoreAppTracking.sharedInstance()?.trackEvent(withCustomPayload: "Add to cart", payload: payloadDict, block:nil)
 ```
 ## To Fetch Delivered push notifications
 ```swift
