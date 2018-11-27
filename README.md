@@ -248,17 +248,18 @@ import NetCorePush
 2) Handle Notification Request
 ```swift
 override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
-let appGroup = "<group.com.CompanyName.ProductName>"
-NetCoreNotificationService.sharedInstance().setUpAppGroup(appGroup)
+    let appGroup = "<group.com.CompanyName.ProductName>"
+    NetCoreNotificationService.sharedInstance().setUpAppGroup(appGroup)
 
-NetCoreNotificationService.sharedInstance().didReceive(request) { (contentToDeliver:UNNotificationContent) in
-contentHandler(contentToDeliver) }
+    NetCoreNotificationService.sharedInstance().didReceive(request) { (contentToDeliver:UNNotificationContent) in
+    contentHandler(contentToDeliver) 
+  }
 }
 ```
 3) Handle Notification Service Time Expire
 ```swift
 override func serviceExtensionTimeWillExpire() { 
-NetCoreNotificationService.sharedInstance().serviceExtensionTimeWillExpire() 
+  NetCoreNotificationService.sharedInstance().serviceExtensionTimeWillExpire() 
 }
 
 ```
