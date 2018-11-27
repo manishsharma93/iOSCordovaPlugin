@@ -79,8 +79,8 @@ NetCorePushTaskManager.sharedInstance().delegate = self
 ```swift
 func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
 
-//Identity must be “”(blank) or as per Primary key which defined on smartech Panel
-NetCoreInstallation.sharedInstance().netCorePushRegisteration(Identity, withDeviceToken: deviceToken) { (status) in }
+  //Identity must be “”(blank) or as per Primary key which defined on smartech Panel
+  NetCoreInstallation.sharedInstance().netCorePushRegisteration(Identity, withDeviceToken: deviceToken) { (status) in }
 }
 ```
 ## For Normal Push Notifications
@@ -88,12 +88,12 @@ NetCoreInstallation.sharedInstance().netCorePushRegisteration(Identity, withDevi
 ```swift
 //Handle Remote/Local Notification Delegate Events (AppDelegate file)
 func application ( _ application : UIApplication, didReceiveRemoteNotification userInfo : [ AnyHashable : Any ]) {
-// perform notification received/click action as per third party SDK as per their document
-NetCorePushTaskManager.sharedInstance().didReceiveRemoteNotification(userInfo)
+  // perform notification received/click action as per third party SDK as per their document
+  NetCorePushTaskManager.sharedInstance().didReceiveRemoteNotification(userInfo)
 }
 
 func application (_ application : UIApplication , didReceive notification : UILocalNotification ){
-NetCorePushTaskManager.sharedInstance().didReceiveLocalNotification(notification.userInfo)
+  NetCorePushTaskManager.sharedInstance().didReceiveLocalNotification(notification.userInfo)
 }
 ```
 ```swift
@@ -141,8 +141,8 @@ func application(_ application: UIApplication, handleActionWithIdentifier identi
 String?, forRemoteNotification userInfo: [AnyHashable : Any], withResponseInfo
 responseInfo: [AnyHashable : Any], completionHandler: @escaping () -> Void) {
 
-NetCorePushTaskManager.sharedInstance().handleAction(withIdentifier: identifier, forRemoteNotification: userInfo,     withResponseInfo: responseInfo)
-completionHandler()
+  NetCorePushTaskManager.sharedInstance().handleAction(withIdentifier: identifier, forRemoteNotification: userInfo,     withResponseInfo: responseInfo)
+  completionHandler()
 
 }
 ```
